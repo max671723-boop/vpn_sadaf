@@ -1,0 +1,8 @@
+app = "vpn_sadaf"
+
+[build]
+  builder = "paketobuildpacks/builder:base"
+
+[env]
+  TOKEN = "7105294830:AAEeKiQSK5rbolMaaClo49l2Y1QotvhbwY8"
+  ADMIN_ID = "7210975276"
