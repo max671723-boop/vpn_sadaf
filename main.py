@@ -1,10 +1,10 @@
 from flask import Flask, request
 import requests
-import os
 
 TOKEN = "7105294830:AAEeKiQSK5rbolMaaClo49l2Y1QotvhbwY8"
-ADMIN_ID = 7210975276
-COLLABS = ["Ehsan71ehsan", "Arman1372"]
+
+ADMINS = [7210975276, 1234567890]  # آیدی ادمین‌ها (آیدی دوم رو جایگزین کن)
+COLLABS = ["Ehsan71ehsan", "Arman1372"]  # یوزرنیم همکارها بدون @
 
 API = f"https://api.telegram.org/bot{TOKEN}/"
 app = Flask(__name__)
@@ -33,20 +33,21 @@ def webhook():
                 shop = data_value
 
                 summary = f"📥 سفارش جدید:\n👤 نام سرویس: {name}\n📦 حجم: {volume}\n🏪 فروشگاه: {shop}"
-                send(ADMIN_ID, summary)
+                for admin_id in ADMINS:
+                    send(admin_id, summary)
                 send(chat_id, "✅ سفارش شما ارسال شد.")
                 user_states.pop(chat_id, None)
                 answer_callback(cb_id, f"{shop} انتخاب شد.")
 
-        elif chat_id == ADMIN_ID:
+        elif chat_id in ADMINS:
             if data_value == "admin_msg1":
-                send(ADMIN_ID, "📢 پیام آماده ۱ ارسال شد!")
+                send(chat_id, "📢 پیام آماده ۱ ارسال شد!")
                 answer_callback(cb_id, "پیام آماده ۱ ارسال شد.")
             elif data_value == "admin_msg2":
-                send(ADMIN_ID, "📢 پیام آماده ۲ ارسال شد!")
+                send(chat_id, "📢 پیام آماده ۲ ارسال شد!")
                 answer_callback(cb_id, "پیام آماده ۲ ارسال شد.")
             elif data_value == "admin_send_user":
-                send(ADMIN_ID, "لطفا آیدی عددی کاربر را با فرمت زیر وارد کنید:\n/send user_id پیام")
+                send(chat_id, "لطفا آیدی عددی کاربر را با فرمت زیر وارد کنید:\n/send user_id پیام")
                 answer_callback(cb_id, "لطفا آیدی کاربر را وارد کنید.")
 
         return "ok", 200
@@ -59,7 +60,7 @@ def webhook():
     if text == "/start":
         if username in COLLABS:
             show_volume_options(chat_id)
-        elif chat_id == ADMIN_ID:
+        elif chat_id in ADMINS:
             send(chat_id, "🔐 پنل مدیریت فعال است.\nبرای نمایش منوی ادمین، دستور /admin را ارسال کنید.")
         else:
             send(chat_id, "⛔️ شما مجاز به استفاده از ربات نیستید.")
@@ -74,10 +75,10 @@ def webhook():
         else:
             send(chat_id, "لطفاً از /start شروع کنید و مراحل را طی کنید.")
 
-    elif text == "/admin" and chat_id == ADMIN_ID:
+    elif text == "/admin" and chat_id in ADMINS:
         admin_menu(chat_id)
 
-    elif chat_id == ADMIN_ID and text.startswith("/send "):
+    elif chat_id in ADMINS and text.startswith("/send "):
         try:
             _, uid, *msg_parts = text.split()
             user_id = int(uid)
@@ -143,3 +144,8 @@ def answer_callback(callback_id, text):
 @app.route("/")
 def home():
     return "VPN Bot is running ✅"
+
+if __name__ == "__main__":
+    import os
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port)
